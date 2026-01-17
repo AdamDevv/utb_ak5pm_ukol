@@ -116,10 +116,7 @@ class DatabaseService {
 
     if (games.isNotEmpty) {
       var game = games.first;
-      return FavouriteGameData(
-        appid: game['appid'] as int,
-        note: game['note'] as String? ?? '',
-      );
+      return FavouriteGameData.fromDynamic(game);
     }
     return null;
   }
@@ -137,7 +134,9 @@ class DatabaseService {
     final db = await _database;
     await db.update(
       'favourite_games',
-      {'note': note},
+      {
+        'note': note,
+      },
       where: 'appid = ?',
       whereArgs: [appid],
     );
@@ -153,5 +152,21 @@ class DatabaseService {
       },
       conflictAlgorithm: ConflictAlgorithm.fail,
     );
+  }
+
+  Future<List<Game>> getAllGamesMarkedAsFavourite() async {
+    final db = await _database;
+    final maps = await db.rawQuery('''
+      SELECT g.* FROM games g
+      INNER JOIN favourite_games f ON g.appid = f.appid
+      ORDER BY g.name ASC
+    ''');
+    return maps.map((map) => Game.fromDynamic(map)).toList();
+  }
+
+  Future<List<FavouriteGameData>> getAllFavouriteGamesData() async {
+    final db = await _database;
+    final maps = await db.query('favourite_games');
+    return maps.map((game) => FavouriteGameData.fromDynamic(game)).toList();
   }
 }

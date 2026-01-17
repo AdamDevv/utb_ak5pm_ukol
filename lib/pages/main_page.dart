@@ -61,7 +61,7 @@ class _GamesPageState extends State<GamesPage> {
           )
         ],
       ),
-      body: _isRefreshing ? _buildLoadingWidget() : _buildContent(),
+      body: _buildContent(),
     );
   }
 
@@ -217,10 +217,14 @@ class _GamesPageState extends State<GamesPage> {
   }
 
   Widget _buildContent() {
+    if (_isRefreshing) {
+      return _buildLoadingWidget();
+    }
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // // Stats bar
+        // Stats bar
         Container(
           padding: const EdgeInsets.all(12),
           color: const Color(0xFF2a475e),

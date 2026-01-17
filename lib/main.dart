@@ -43,9 +43,9 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: IndexedStack(index: _currentIndex, children: const [
-          GamesPage(),
-          FavouritesPage(),
+        body: IndexedStack(index: _currentIndex, children: [
+          const GamesPage(),
+          _currentIndex == 1 ? const FavouritesPage() : const SizedBox.shrink(),
         ]),
         bottomNavigationBar: NavigationBar(
             selectedIndex: _currentIndex,

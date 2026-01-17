@@ -3,7 +3,7 @@
 import '../models/game.dart';
 import 'package:http/http.dart' as http;
 
-import '../pages/game_detail.dart';
+import '../models/game_detail.dart';
 
 class SteamApiService {
   static const String _apiKey = '535D0C1D4372C9C3C1DB3AE54E8A8522';
@@ -29,7 +29,7 @@ class SteamApiService {
       var parsedGames = games.map((game) => Game.fromDynamic(game)).toList();
       allGames.addAll(parsedGames);
       onProgress?.call(allGames.length);
-      
+
       if (haveMoreResults) {
         lastAppId = json["response"]["last_appid"];
         continue;
@@ -37,7 +37,7 @@ class SteamApiService {
 
       break;
     }
-    
+
     await Future.delayed(const Duration(milliseconds: 100));
 
     return allGames;
