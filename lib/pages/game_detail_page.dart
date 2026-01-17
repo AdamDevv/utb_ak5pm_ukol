@@ -22,6 +22,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
   final SteamApiService _apiService = SteamApiService();
 
   bool _isLoading = false;
+  bool _isFavourite = false;
 
   GameDetail? _gameDetail;
 
@@ -78,13 +79,21 @@ class _GameDetailPageState extends State<GameDetailPage> {
             ),
 
           // Content
-          Padding(padding: const EdgeInsets.all(16), child: _buildContent(gameDetail))
+          Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildInfoCards(gameDetail),
+                  const SizedBox(height: 24),
+                  _buildAddToFavouritesSection(),
+                ],
+              ))
         ],
       ),
     );
   }
 
-  Widget _buildContent(GameDetail gameDetail) {
+  Widget _buildInfoCards(GameDetail gameDetail) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -163,5 +172,37 @@ class _GameDetailPageState extends State<GameDetailPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildAddToFavouritesSection() {
+    return Column(children: [
+      // Favourite button
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: _toggleFavourite,
+          icon: Icon(_isFavourite ? Icons.favorite : Icons.favorite_border),
+          label: Text(_isFavourite ? 'Remove from Favourites' : 'Add to Favourites'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _isFavourite ? Colors.red : const Color(0xFF1b2838),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
+    ]);
+  }
+
+  Future<void> _toggleFavourite() async {
+    if (_isFavourite) {
+      setState(() {
+        _isFavourite = false;
+      });
+    } else {
+      setState(() {
+        _isFavourite = true;
+      });
+    }
   }
 }
