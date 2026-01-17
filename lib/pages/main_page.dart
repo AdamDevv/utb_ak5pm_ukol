@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:utb_ak5pm_ukol/models/game.dart';
+import 'package:utb_ak5pm_ukol/pages/game_detail_page.dart';
 
 import '../services/database_service.dart';
 import '../services/steam_api_service.dart';
@@ -186,6 +187,18 @@ class _GamesPageState extends State<GamesPage> {
     _allGamesLoaded = _games.length == _totalGamesCount;
   }
 
+  void _navigateToDetail(Game game) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GameDetailPage(
+          appid: game.appid,
+          gameName: game.name,
+        ),
+      ),
+    );
+  }
+
   Widget _buildLoadingWidget() {
     return Center(
       child: Column(
@@ -322,6 +335,7 @@ class _GamesPageState extends State<GamesPage> {
           overflow: TextOverflow.ellipsis,
         ),
         trailing: const Icon(Icons.chevron_right),
+        onTap: () => _navigateToDetail(game),
       ),
     );
   }
