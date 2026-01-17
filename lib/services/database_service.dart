@@ -73,12 +73,28 @@ class DatabaseService {
 
   Future<List<Game>> getGamesSortedByLastModified(int limit, int offset) async {
     final db = await _database;
-    final maps = await db.query(
+    final games = await db.query(
       'games',
       orderBy: 'last_modified DESC',
       limit: limit,
       offset: offset,
     );
-    return maps.map((map) => Game.fromDynamic(map)).toList();
+    return _parseGamesMap(games);
+  }
+
+  Future<List<Game>> searchGames(String query, {int limit = 20}) async {
+    final db = await _database;
+    final games = await db.query(
+      'games',
+      where: 'name LIKE ?',
+      whereArgs: ['%$query%'],
+      orderBy: 'name ASC',
+      limit: limit,
+    );
+    return _parseGamesMap(games);
+  }
+
+  List<Game> _parseGamesMap(List<Map<String, Object?>> games) {
+    return games.map((map) => Game.fromDynamic(map)).toList();
   }
 }
