@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:utb_ak5pm_ukol/pages/game_detail.dart';
 
 import '../services/steam_api_service.dart';
@@ -33,9 +34,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: const Text('Game Detail')
-          ),
+      appBar: AppBar(title: const Text('Game Detail')),
       body: _buildBody(),
     );
   }
@@ -65,16 +64,19 @@ class _GameDetailPageState extends State<GameDetailPage> {
         children: [
           // Capsule image
           if (gameDetail.capsuleImage != null)
-            Center(
-              child: ClipRRect(
-                child: Image.network(
-                  gameDetail.capsuleImage!,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
+            AspectRatio(
+              aspectRatio: 184 / 69,
+              child: CachedNetworkImage(
+                imageUrl: gameDetail.capsuleImage!,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[300],
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
               ),
             ),
-          
+
           // Content
           Padding(padding: const EdgeInsets.all(16), child: _buildContent(gameDetail))
         ],
@@ -112,7 +114,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
             content: gameDetail.genres.join(', '),
           ),
         const SizedBox(height: 6),
-        
+
         // Release date
         _buildInfoCard(
           icon: Icons.calendar_today,
