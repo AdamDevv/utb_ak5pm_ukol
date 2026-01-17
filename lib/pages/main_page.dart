@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:utb_ak5pm_ukol/models/game.dart';
 
 import '../services/database_service.dart';
@@ -14,17 +15,24 @@ class GamesPage extends StatefulWidget {
 class _GamesPageState extends State<GamesPage> {
   final DatabaseService _dbService = DatabaseService.instance;
   final SteamApiService _apiService = SteamApiService();
+  late SharedPreferences _prefs;
 
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  static const _prefsKeyTotalGamesCount = 'total_games_count';
+  static const _prefsKeyLastUpdateTime = "last_update_time";
+
   List<Game> _games = [];
-  var _isRefreshing = false;
-  var _isLoading = false;
+  bool _isRefreshing = false;
+  bool _isLoading = false;
   String _loadingMessage = '';
 
   bool _isSearching = false;
   List<Game> _searchResults = [];
+
+  int _totalGamesCount = 0;
+  DateTime? _lastUpdateTime;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +63,11 @@ class _GamesPageState extends State<GamesPage> {
   @override
   void initState() {
     super.initState();
+    _initResources();
+  }
+
+  Future<void> _initResources() async {
+    _prefs = await SharedPreferences.getInstance();
     _loadInitialData();
   }
 
@@ -69,6 +82,8 @@ class _GamesPageState extends State<GamesPage> {
       await _refreshData();
     } else {
       _games = await _dbService.getGamesSortedByLastModified(50, 0);
+
+      _loadStats();
     }
 
     setState(() {
@@ -96,6 +111,10 @@ class _GamesPageState extends State<GamesPage> {
     await _dbService.deleteAllGames();
     await _dbService.insertGames(games);
 
+    _prefs.setInt(_prefsKeyTotalGamesCount, games.length);
+    _prefs.setString(_prefsKeyLastUpdateTime, DateTime.now().toIso8601String());
+    _loadStats();
+
     setState(() {
       _isRefreshing = false;
       _games = games;
@@ -121,6 +140,19 @@ class _GamesPageState extends State<GamesPage> {
     });
   }
 
+  void _loadStats() {
+    _totalGamesCount = _prefs.getInt(_prefsKeyTotalGamesCount) ?? 0;
+    final timeString = _prefs.getString(_prefsKeyLastUpdateTime);
+    if (timeString != null) {
+      _lastUpdateTime = DateTime.parse(timeString);
+    }
+  }
+
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return 'Never';
+    return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
   Widget _buildLoadingWidget() {
     return Center(
       child: Column(
@@ -142,6 +174,25 @@ class _GamesPageState extends State<GamesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // // Stats bar
+        Container(
+          padding: const EdgeInsets.all(12),
+          color: const Color(0xFF2a475e),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Total games: $_totalGamesCount',
+                style: const TextStyle(color: Colors.white70),
+              ),
+              Text(
+                'Last update: ${_formatDateTime(_lastUpdateTime)}',
+                style: const TextStyle(color: Colors.white70),
+              ),
+            ],
+          ),
+        ),
+
         //Search bar
         Padding(
           padding: const EdgeInsets.all(16),
