@@ -8,7 +8,7 @@ class SteamApiService {
   static const String _appListUrl = 'http://api.steampowered.com/IStoreService/GetAppList/v1/';
   static const String _appDetailsUrl = 'https://store.steampowered.com/api/appdetails';
 
-  Future<List<Game>> fetchAllGames() async {
+  Future<List<Game>> fetchAllGames(Function(int gamesLoaded)? onProgress) async {
     List<Game> allGames = [];
 
     var lastAppId = 0;
@@ -26,7 +26,8 @@ class SteamApiService {
 
       var parsedGames = games.map((game) => Game(game["appid"], game["name"], game['last_modified'])).toList();
       allGames.addAll(parsedGames);
-
+      onProgress?.call(allGames.length);
+      
       if (haveMoreResults) {
         lastAppId = json["response"]["last_appid"];
         continue;
@@ -34,6 +35,8 @@ class SteamApiService {
 
       break;
     }
+    
+    await Future.delayed(const Duration(milliseconds: 100));
 
     return allGames;
   }

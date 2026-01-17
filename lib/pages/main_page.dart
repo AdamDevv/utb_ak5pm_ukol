@@ -16,6 +16,7 @@ class _GamesPageState extends State<GamesPage> {
 
   List<Game> _games = [];
   var _isRefreshing = false;
+  String _loadingMessage = '';
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +40,7 @@ class _GamesPageState extends State<GamesPage> {
           )
         ],
       ),
-      body: _buildGamesList(),
+      body: _isRefreshing ? _buildLoadingWidget() : _buildGamesList(),
     );
   }
 
@@ -47,12 +48,36 @@ class _GamesPageState extends State<GamesPage> {
     setState(() {
       _isRefreshing = true;
       _games = [];
+      _loadingMessage = 'Fetching games from Steam...';
     });
-    var games = await _apiService.fetchAllGames();
+
+    var games = await _apiService.fetchAllGames((gamesLoaded) {
+      setState(() {
+        _loadingMessage = 'Loaded $gamesLoaded games...';
+      });
+    });
+
     setState(() {
       _isRefreshing = false;
       _games = games;
     });
+  }
+
+  Widget _buildLoadingWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            _loadingMessage,
+            style: const TextStyle(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildGamesList() {
