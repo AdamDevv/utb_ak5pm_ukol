@@ -24,7 +24,7 @@ class SteamApiService {
       final bool haveMoreResults = json["response"]["have_more_results"] ?? false;
       final List<dynamic> games = json["response"]["apps"] ?? [];
 
-      var parsedGames = games.map((game) => Game(game["appid"], game["name"], game['last_modified'])).toList();
+      var parsedGames = games.map((game) => Game.fromDynamic(game)).toList();
       allGames.addAll(parsedGames);
       onProgress?.call(allGames.length);
       

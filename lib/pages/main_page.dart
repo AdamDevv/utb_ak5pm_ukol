@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:utb_ak5pm_ukol/models/game.dart';
 
+import '../services/database_service.dart';
 import '../services/steam_api_service.dart';
 
 class GamesPage extends StatefulWidget {
@@ -11,11 +12,13 @@ class GamesPage extends StatefulWidget {
 }
 
 class _GamesPageState extends State<GamesPage> {
+  final DatabaseService _dbService = DatabaseService.instance;
   final SteamApiService _apiService = SteamApiService();
   final ScrollController _scrollController = ScrollController();
 
   List<Game> _games = [];
   var _isRefreshing = false;
+  var _isLoading = false;
   String _loadingMessage = '';
 
   @override
@@ -44,6 +47,30 @@ class _GamesPageState extends State<GamesPage> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final gamesInDb = await _dbService.getGamesCount();
+
+    if (gamesInDb == 0) {
+      await _refreshData();
+    } else {
+      _games = await _dbService.getGamesSortedByLastModified(50, 0);
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   Future<void> _refreshData() async {
     setState(() {
       _isRefreshing = true;
@@ -56,6 +83,13 @@ class _GamesPageState extends State<GamesPage> {
         _loadingMessage = 'Loaded $gamesLoaded games...';
       });
     });
+
+    setState(() {
+      _loadingMessage = 'Saving to database';
+    });
+
+    await _dbService.deleteAllGames();
+    await _dbService.insertGames(games);
 
     setState(() {
       _isRefreshing = false;
