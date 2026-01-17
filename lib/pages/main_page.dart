@@ -47,16 +47,8 @@ class _GamesPageState extends State<GamesPage> {
         actions: [
           IconButton(
             onPressed: _isRefreshing ? null : _refreshData,
-            icon: _isRefreshing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.refresh),
+            disabledColor: Colors.grey,
+            icon: const Icon(Icons.refresh),
             tooltip: "Refresh",
           )
         ],
@@ -220,13 +212,13 @@ class _GamesPageState extends State<GamesPage> {
     if (_isRefreshing) {
       return _buildLoadingWidget();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Stats bar
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
           color: const Color(0xFF2a475e),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -269,19 +261,6 @@ class _GamesPageState extends State<GamesPage> {
             onChanged: _onSearchChanged,
           ),
         ),
-
-        // Header
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Latest Modified Games',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
 
         // Games list
         Expanded(
