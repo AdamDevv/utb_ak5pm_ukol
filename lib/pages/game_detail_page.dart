@@ -1,7 +1,9 @@
 ﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:utb_ak5pm_ukol/pages/game_detail.dart';
+import 'package:utb_ak5pm_ukol/models/favourite_game_data.dart';
+import 'package:utb_ak5pm_ukol/models/game_detail.dart';
 
+import '../services/database_service.dart';
 import '../services/steam_api_service.dart';
 
 class GameDetailPage extends StatefulWidget {
@@ -20,6 +22,7 @@ class GameDetailPage extends StatefulWidget {
 
 class _GameDetailPageState extends State<GameDetailPage> {
   final SteamApiService _apiService = SteamApiService();
+  final DatabaseService _dbService = DatabaseService.instance;
 
   bool _isLoading = false;
 
@@ -47,12 +50,20 @@ class _GameDetailPageState extends State<GameDetailPage> {
       _isLoading = true;
     });
 
+    // Fetch game detail
     _gameDetail = await _apiService.fetchGameDetail(widget.appid);
+
+    // Load favourite status and note
+    final favouriteGameData = await _dbService.getFavouriteGameData(widget.appid);
+    _isFavourite = favouriteGameData != null;
+    _note = favouriteGameData?.note ?? '';
 
     setState(() {
       _isLoading = false;
     });
   }
+
+  Future<void> _loadFavouriteStatus() async {}
 
   Widget _buildBody() {
     if (_isLoading) {
@@ -196,10 +207,17 @@ class _GameDetailPageState extends State<GameDetailPage> {
 
   Future<void> _toggleFavourite() async {
     if (_isFavourite) {
+      await _dbService.removeFavourite(widget.appid);
+
       setState(() {
         _isFavourite = false;
+        _note = "";
       });
     } else {
+      await _dbService.insertFavouriteGameData(FavouriteGameData(
+        appid: widget.appid,
+        note: '',
+      ));
       setState(() {
         _isFavourite = true;
       });
@@ -288,6 +306,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
     );
 
     if (result != null) {
+      await _dbService.updateFavouriteNote(widget.appid, result);
       setState(() {
         _note = result;
       });

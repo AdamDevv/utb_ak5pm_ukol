@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import '../models/favourite_game_data.dart';
 import '../models/game.dart';
 
 class DatabaseService {
@@ -29,6 +30,13 @@ class DatabaseService {
         appid INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         last_modified INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE favourite_games (
+        appid INTEGER PRIMARY KEY,
+        note TEXT NOT NULL
       )
     ''');
 
@@ -96,5 +104,54 @@ class DatabaseService {
 
   List<Game> _parseGamesMap(List<Map<String, Object?>> games) {
     return games.map((map) => Game.fromDynamic(map)).toList();
+  }
+
+  Future<FavouriteGameData?> getFavouriteGameData(int appid) async {
+    final db = await _database;
+    final games = await db.query(
+      'favourite_games',
+      where: 'appid = ?',
+      whereArgs: [appid],
+    );
+
+    if (games.isNotEmpty) {
+      var game = games.first;
+      return FavouriteGameData(
+        appid: game['appid'] as int,
+        note: game['note'] as String? ?? '',
+      );
+    }
+    return null;
+  }
+
+  Future<void> removeFavourite(int appid) async {
+    final db = await _database;
+    await db.delete(
+      'favourite_games',
+      where: 'appid = ?',
+      whereArgs: [appid],
+    );
+  }
+
+  Future<void> updateFavouriteNote(int appid, String note) async {
+    final db = await _database;
+    await db.update(
+      'favourite_games',
+      {'note': note},
+      where: 'appid = ?',
+      whereArgs: [appid],
+    );
+  }
+
+  Future<void> insertFavouriteGameData(FavouriteGameData gameData) async {
+    final db = await _database;
+    await db.insert(
+      'favourite_games',
+      {
+        'appid': gameData.appid,
+        'note': gameData.note,
+      },
+      conflictAlgorithm: ConflictAlgorithm.fail,
+    );
   }
 }
