@@ -24,6 +24,8 @@ class _GamesPageState extends State<GamesPage> {
   static const _prefsKeyLastUpdateTime = "last_update_time";
 
   List<Game> _games = [];
+  bool _allGamesLoaded = false;
+
   bool _isRefreshing = false;
   bool _isLoading = false;
   String _loadingMessage = '';
@@ -33,6 +35,8 @@ class _GamesPageState extends State<GamesPage> {
 
   int _totalGamesCount = 0;
   DateTime? _lastUpdateTime;
+
+  int pageSize = 50;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +67,7 @@ class _GamesPageState extends State<GamesPage> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _initResources();
   }
 
@@ -81,14 +86,22 @@ class _GamesPageState extends State<GamesPage> {
     if (gamesInDb == 0) {
       await _refreshData();
     } else {
-      _games = await _dbService.getGamesSortedByLastModified(50, 0);
-
+      _games = await _dbService.getGamesSortedByLastModified(pageSize, 0);
+      _updateListMetaValues();
       _loadStats();
     }
 
     setState(() {
       _isLoading = false;
     });
+  }
+
+  void _onScroll() {
+    if (_isLoading || _allGamesLoaded || _isSearching) return;
+
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 1000) {
+      _loadMoreGames();
+    }
   }
 
   Future<void> _refreshData() async {
@@ -98,7 +111,7 @@ class _GamesPageState extends State<GamesPage> {
       _loadingMessage = 'Fetching games from Steam...';
     });
 
-    var games = await _apiService.fetchAllGames((gamesLoaded) {
+    final games = await _apiService.fetchAllGames((gamesLoaded) {
       setState(() {
         _loadingMessage = 'Loaded $gamesLoaded games...';
       });
@@ -115,9 +128,25 @@ class _GamesPageState extends State<GamesPage> {
     _prefs.setString(_prefsKeyLastUpdateTime, DateTime.now().toIso8601String());
     _loadStats();
 
+    _games = await _dbService.getGamesSortedByLastModified(pageSize, 0);
+    _updateListMetaValues();
+
     setState(() {
       _isRefreshing = false;
-      _games = games;
+    });
+  }
+
+  Future<void> _loadMoreGames() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final moreGames = await _dbService.getGamesSortedByLastModified(pageSize, _games.length);
+
+    setState(() {
+      _games.addAll(moreGames);
+      _updateListMetaValues();
+      _isLoading = false;
     });
   }
 
@@ -151,6 +180,10 @@ class _GamesPageState extends State<GamesPage> {
   String _formatDateTime(DateTime? dateTime) {
     if (dateTime == null) return 'Never';
     return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _updateListMetaValues() {
+    _allGamesLoaded = _games.length == _totalGamesCount;
   }
 
   Widget _buildLoadingWidget() {
@@ -253,9 +286,16 @@ class _GamesPageState extends State<GamesPage> {
       );
     }
 
+    var itemsCount = displayedGames.length;
+
+    // Extra item for loading indicator if not all games loaded and not searching
+    if (!_allGamesLoaded && !_isSearching) {
+      itemsCount++;
+    }
+
     return ListView.builder(
       controller: _scrollController,
-      itemCount: displayedGames.length,
+      itemCount: itemsCount,
       itemBuilder: (context, index) {
         if (index == displayedGames.length) {
           return const Center(
