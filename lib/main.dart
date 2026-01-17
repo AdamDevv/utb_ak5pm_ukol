@@ -43,7 +43,6 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
         body: IndexedStack(index: _currentIndex, children: const [
           GamesPage(),
           FavouritesPage(),
@@ -57,13 +56,9 @@ class _MainPageState extends State<MainPage> {
             },
             destinations: const [
               NavigationDestination(
-                  icon: Icon(Icons.sports_esports_outlined),
-                  selectedIcon: Icon(Icons.sports_esports),
-                  label: "Games"),
+                  icon: Icon(Icons.sports_esports_outlined), selectedIcon: Icon(Icons.sports_esports), label: "Games"),
               NavigationDestination(
-                  icon: Icon(Icons.favorite_outline),
-                  selectedIcon: Icon(Icons.favorite),
-                  label: "Favourites")
+                  icon: Icon(Icons.favorite_outline), selectedIcon: Icon(Icons.favorite), label: "Favourites")
             ]));
   }
 }
