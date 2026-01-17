@@ -22,9 +22,11 @@ class _GameDetailPageState extends State<GameDetailPage> {
   final SteamApiService _apiService = SteamApiService();
 
   bool _isLoading = false;
-  bool _isFavourite = false;
 
   GameDetail? _gameDetail;
+
+  bool _isFavourite = false;
+  String _note = "";
 
   @override
   void initState() {
@@ -35,7 +37,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Game Detail')),
+      appBar: AppBar(title: Text('${widget.gameName} details')),
       body: _buildBody(),
     );
   }
@@ -85,7 +87,9 @@ class _GameDetailPageState extends State<GameDetailPage> {
                 children: [
                   _buildInfoCards(gameDetail),
                   const SizedBox(height: 24),
-                  _buildAddToFavouritesSection(),
+                  _buildAddToFavouritesButton(),
+                  const SizedBox(height: 12),
+                  _buildNotesSection(),
                 ],
               ))
         ],
@@ -99,7 +103,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
       children: [
         // Game name
         Text(
-          _gameDetail!.name.isNotEmpty ? _gameDetail!.name : widget.gameName,
+          widget.gameName,
           style: const TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.bold,
@@ -174,24 +178,20 @@ class _GameDetailPageState extends State<GameDetailPage> {
     );
   }
 
-  Widget _buildAddToFavouritesSection() {
-    return Column(children: [
-      // Favourite button
-      SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _toggleFavourite,
-          icon: Icon(_isFavourite ? Icons.favorite : Icons.favorite_border),
-          label: Text(_isFavourite ? 'Remove from Favourites' : 'Add to Favourites'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _isFavourite ? Colors.red : const Color(0xFF1b2838),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-          ),
+  Widget _buildAddToFavouritesButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _toggleFavourite,
+        icon: Icon(_isFavourite ? Icons.favorite : Icons.favorite_border),
+        label: Text(_isFavourite ? 'Remove from Favourites' : 'Add to Favourites'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _isFavourite ? Colors.red : const Color(0xFF1b2838),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
-      const SizedBox(height: 12),
-    ]);
+    );
   }
 
   Future<void> _toggleFavourite() async {
@@ -202,6 +202,94 @@ class _GameDetailPageState extends State<GameDetailPage> {
     } else {
       setState(() {
         _isFavourite = true;
+      });
+    }
+  }
+
+  Widget _buildNotesSection() {
+    if (!_isFavourite) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Notes',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  onPressed: _editNote,
+                  icon: const Icon(Icons.edit),
+                  tooltip: 'Edit note',
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _note.isEmpty ? 'Tap edit button to add notes.' : _note,
+              style: TextStyle(
+                color: _note.isEmpty ? Colors.grey : Colors.black87,
+                fontStyle: _note.isEmpty ? FontStyle.italic : FontStyle.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editNote() async {
+    final controller = TextEditingController(text: _note);
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        insetPadding: const EdgeInsets.all(16),
+        contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        actionsPadding: const EdgeInsets.only(bottom: 16, right: 16),
+        title: const Text('Add Note'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: 'Enter your note...',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 3,
+            autofocus: true,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            style: TextButton.styleFrom(
+              backgroundColor: const Color(0xFF1b2838),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _note = result;
       });
     }
   }
