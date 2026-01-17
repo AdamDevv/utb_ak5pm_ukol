@@ -15,6 +15,7 @@ class _GamesPageState extends State<GamesPage> {
   final ScrollController _scrollController = ScrollController();
 
   List<Game> _games = [];
+  var _isRefreshing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +24,17 @@ class _GamesPageState extends State<GamesPage> {
         title: const Text('Games'),
         actions: [
           IconButton(
-            onPressed: _refreshData,
-            icon: const Icon(Icons.refresh),
+            onPressed: _isRefreshing ? null : _refreshData,
+            icon: _isRefreshing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.refresh),
             tooltip: "Refresh",
           )
         ],
@@ -35,10 +45,12 @@ class _GamesPageState extends State<GamesPage> {
 
   Future<void> _refreshData() async {
     setState(() {
+      _isRefreshing = true;
       _games = [];
     });
     var games = await _apiService.fetchAllGames();
     setState(() {
+      _isRefreshing = false;
       _games = games;
     });
   }
