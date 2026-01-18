@@ -1,4 +1,4 @@
-# 🎮 Steam Tracker
+# Steam Tracker
 
 Mobilní aplikace pro sledování her ze Steamu.
 
