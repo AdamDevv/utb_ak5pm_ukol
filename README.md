@@ -1,16 +1,17 @@
-# utb_ak5pm_ukol
+# 🎮 Steam Tracker
 
-A new Flutter project.
+Mobilní aplikace pro sledování her ze Steamu.
 
-## Getting Started
+Aplikace načítá aktuální data přímo ze **Steam REST API** a ukládá je do **lokální SQLite databáze**.
 
-This project is a starting point for a Flutter application.
+## Features list
+- Procházet kompletní katalog her dostupných na platformě Steam
+- Vyhledávat pomocí názvu hry
+- Zobrazit detailní informace o každé hře
+- Přidávat hry do seznamu oblíbených
+- Ukládat poznámky k oblíbeným hrám
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Screenshoty
+![Screenshot aplikace](screenshots/screenshot1.png)
+![Screenshot aplikace](screenshots/screenshot2.png)
+![Screenshot aplikace](screenshots/screenshot3.png)
