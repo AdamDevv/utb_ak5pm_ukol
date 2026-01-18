@@ -2,7 +2,7 @@
     <application
         android:label="utb_ak5pm_ukol"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
